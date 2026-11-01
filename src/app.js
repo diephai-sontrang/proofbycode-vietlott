@@ -540,7 +540,7 @@ async function copySimulationResult() {
   }
   const result = buildSimulationExport();
   const text = [
-    'Proofbycode / Vietlott Lab',
+    'Proofbycode / Mô phỏng Vietlott',
     `Bộ số mục tiêu: ${formatNumbers(result.target)}`,
     `Kết quả: ${formatNumbers(result.matchedCombination)}`,
     `Lượt thử: ${formatNumber(result.attempts)}`,
