@@ -67,16 +67,14 @@ a { color: var(--muted-strong); }
 .brand-lockup { gap: 12px; }
 
 .brand-mark {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  border: 2px solid var(--teal);
+  width: 40px;
+  height: 40px;
+  display: block;
+  flex: 0 0 auto;
   border-radius: 10px;
-  color: var(--teal);
-  font-size: 28px;
-  line-height: 1;
-  transform: rotate(30deg);
+  object-fit: cover;
+  background: #06152b;
+  box-shadow: 0 0 0 1px rgba(22, 216, 200, 0.38), 0 4px 16px rgba(0, 0, 0, 0.18);
 }
 
 .brand-title { color: var(--text); font-weight: 750; text-decoration: none; font-size: 18px; }
@@ -297,6 +295,7 @@ body.presentation-mode #presentation-button { position: absolute; top: 14px; rig
   .site-header, .app-shell { width: calc(100% - 20px); }
   .site-header { min-height: 68px; }
   .brand-subtitle, .header-divider { display: none; }
+  .brand-mark { width: 34px; height: 34px; border-radius: 8px; }
   .brand-title { font-size: 15px; }
   .header-links { font-size: 12px; }
   .app-nav { padding: 0 8px; }
