@@ -121,7 +121,7 @@ function average(values) {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-function buildProbability(mode, selectedCount) {
+export function calculateTheoreticalProbability(mode, selectedCount) {
   const numerator = mode === 'contains-selected'
     ? choose(MAX_NUMBER - selectedCount, COMBINATION_SIZE - selectedCount)
     : choose(selectedCount, COMBINATION_SIZE);
@@ -294,7 +294,7 @@ export function analyzeHistory(config, normalizedData) {
     matchCountHistogram,
     matchedDraws: publicMatchedDraws,
     waitingGaps: buildGapReport(analyzedDraws, matchedDraws),
-    theoreticalProbability: buildProbability(
+    theoreticalProbability: calculateTheoreticalProbability(
       validatedConfig.mode,
       validatedConfig.selectedNumbers.length,
     ),

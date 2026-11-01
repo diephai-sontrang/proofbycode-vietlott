@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node --test",
     "simulate": "node scripts/simulate.js",
-    "analyze-history": "node scripts/analyze-history.js"
+    "analyze-history": "node scripts/analyze-history.js",
+    "serve": "node scripts/serve.js"
   },
   "engines": {
     "node": ">=18"

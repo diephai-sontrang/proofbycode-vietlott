@@ -1,9 +1,10 @@
 const MAX_NUMBER = 45;
-const COMBINATION_SIZE = 6;
+export const COMBINATION_SIZE = 6;
 const UINT32_RANGE = 0x1_0000_0000;
 const MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER;
 
 export const COMBINATION_COUNT = 8_145_060;
+export const SIMULATION_ENGINE_VERSION = '1.0.0';
 
 function choose(n, k) {
   if (k < 0 || k > n) {
@@ -98,7 +99,7 @@ function hashSeed(seed) {
   return hash >>> 0;
 }
 
-function createSeededRandom(seed) {
+export function createSeededUint32Source(seed) {
   let state = hashSeed(seed) || 0x6d2b79f5;
 
   return () => {
@@ -110,8 +111,12 @@ function createSeededRandom(seed) {
   };
 }
 
-function createBoundedSampler(nextUint32) {
+export function createBoundedSampler(nextUint32) {
   return (bound) => {
+    if (!Number.isSafeInteger(bound) || bound < 1 || bound > UINT32_RANGE) {
+      throw new RangeError('bounded sampler bound must be a positive safe integer within uint32 range');
+    }
+
     const limit = UINT32_RANGE - (UINT32_RANGE % bound);
 
     while (true) {
@@ -125,6 +130,11 @@ function createBoundedSampler(nextUint32) {
       }
     }
   };
+}
+
+export function createCombinationSampler(nextUint32) {
+  const sampleRank = createBoundedSampler(nextUint32);
+  return () => combinationFromRank(sampleRank(COMBINATION_COUNT));
 }
 
 function validateConfig(config) {
@@ -192,7 +202,7 @@ function validateAdvanceOptions(options) {
 
 export function createSimulation(config) {
   const normalizedConfig = validateConfig(config);
-  const nextUint32 = normalizedConfig.randomUint32 ?? createSeededRandom(normalizedConfig.seed);
+  const nextUint32 = normalizedConfig.randomUint32 ?? createSeededUint32Source(normalizedConfig.seed);
   const sampleRank = createBoundedSampler(nextUint32);
 
   let status = 'ready';

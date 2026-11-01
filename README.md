@@ -13,6 +13,38 @@ npm test
 
 Node.js 18 or newer is supported.
 
+## Browser UI
+
+The repository also contains a buildless static browser UI with two tabs: `Mô phỏng` and `Tra lịch sử`. It uses the same validated historical dataset and a browser Web Worker for the single-attempt simulation. The UI is deliberately separate from the multi-player Node CLI: it represents one participant generating one six-number combination per attempt until the first match.
+
+Start a local HTTP preview from the repository root:
+
+```text
+npm run serve
+```
+
+Then open `http://localhost:4173/`. Opening `index.html` directly from `file://` is not supported because modules, Workers and the JSON dataset require HTTP fetch semantics. All browser URLs are relative so the same static files work under the GitHub Pages path `/proofbycode-vietlott/`. The workflow in `.github/workflows/pages.yml` prepares a static Pages deployment; it is not run or published by local development.
+
+The simulation tab supports a custom target of 2–6 numbers or a target selected from an actual historical draw, explicit reproducible seeds, pause/resume/stop, active elapsed time, copy/export, and a 9:16 presentation mode. It also displays the mathematical coverage size and the estimated cost per attempt at 10,000 VND per six-number set. For `k` selected numbers, one attempt covers `C(45-k, 6-k)` sets. This is a mathematical coverage model and does not claim that every 2–4 number selection is an official Vietlott retail product. The historical tab currently exposes a unified `contains-selected` control limited to 1–6 selected numbers; the `jackpot-coverage` mode remains available in the core and CLI for later UI re-enablement. It defaults the date inputs to the dataset's first and last draw and shows the number of draws currently inside the selected range. It intentionally does not expose the numeric-range helper as a UI control.
+
+The single-attempt browser core is available to browser/Worker modules as:
+
+```js
+import { createAttemptSimulation } from './src/attempt-simulation.js';
+
+const simulation = createAttemptSimulation({
+  target: [3, 12, 27],
+  seed: 'demo-001',
+});
+
+simulation.advance({ maxCandidateGenerations: 10_000 });
+console.log(simulation.getSnapshot());
+```
+
+It generates actual combinations, matches when all selected target numbers are present, returns the full matching combination and does not impose an arbitrary total-attempt cap. Its status supports `ready`, `running`, `paused`, `matched`, `stopped` and `error`. The existing `createSimulation()` multi-player API below is unchanged.
+
+For the browser cost display, the six-number set price is fixed at 10,000 VND. The coverage model is: 6 selected numbers = 1 set and 10,000 VND; 5 = 40 sets and 400,000 VND; 4 = 820 sets and 8,200,000 VND; 3 = 11,480 sets and 114,800,000 VND; 2 = 123,410 sets and 1,234,100,000 VND. The estimated total is the number of attempted bundles multiplied by the cost per attempt, including the matching attempt. It is an observed simulation cost under this model, not a forecast or a statement about an official retail ticket configuration.
+
 ## CLI
 
 ```text
@@ -22,6 +54,8 @@ node scripts/simulate.js \
   --stop-after-winners 1 \
   --seed demo-001
 ```
+
+The Node CLI remains independent of the browser Worker and supports the existing multi-player simulation semantics.
 
 Use `node scripts/simulate.js --help` for the full option list. The CLI prints the configuration, throttled progress, winner events, elapsed time, throughput and a final summary. It stops when `stopAfterWinners` is reached or after 10 seconds, whichever comes first. `Ctrl+C` prints the current snapshot as interrupted rather than completed. The core API still requires `maxPlayers`; the CLI supplies an internal safe ceiling because its practical limit is the 10-second timeout.
 

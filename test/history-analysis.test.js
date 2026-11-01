@@ -8,6 +8,7 @@ import {
 } from '../src/history-data.js';
 import {
   analyzeHistory,
+  calculateTheoreticalProbability,
   filterDrawsByNumberRange,
 } from '../src/history-analysis.js';
 
@@ -291,6 +292,16 @@ test('probability formulas return exact counts for both modes', () => {
   assert.equal(coverageAll.theoreticalProbability.decimal, 1);
   assert.equal(coverageAll.theoreticalProbability.theoreticalMeanWaitingDraws, 1);
   assert.equal(coverageAll.matchedDrawCount, FIXTURE_DATA.draws.length);
+});
+
+test('shared theoretical probability utility supports simulation targets', () => {
+  const threeNumbers = calculateTheoreticalProbability('contains-selected', 3);
+  const sixNumbers = calculateTheoreticalProbability('contains-selected', 6);
+
+  assert.equal(threeNumbers.exact.numerator, 11_480);
+  assert.equal(threeNumbers.exact.denominator, COMBINATION_COUNT);
+  assert.equal(sixNumbers.exact.numerator, 1);
+  assert.equal(sixNumbers.theoreticalMeanWaitingDraws, COMBINATION_COUNT);
 });
 
 test('rejects explicit non-Mega product markers', () => {

@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Proofbycode Vietlott Lab — mô phỏng Mega 6/45 và tra cứu lịch sử.">
+    <title>Proofbycode / Vietlott Lab</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true">◇</div>
+        <div>
+          <a class="brand-title" href="./">Proofbycode / Vietlott Lab</a>
+          <p class="brand-subtitle">Dữ liệu minh hoạ · mô phỏng có thể tái lập</p>
+        </div>
+      </div>
+      <div class="header-links">
+        <a href="https://github.com/diephai-sontrang/proofbycode-vietlott" target="_blank" rel="noreferrer">GitHub</a>
+        <span class="header-divider" aria-hidden="true">|</span>
+        <span class="header-note">Nghiên cứu xác suất · Minh bạch dữ liệu</span>
+      </div>
+    </header>
+
+    <main class="app-shell">
+      <div class="app-nav" role="tablist" aria-label="Khu vực ứng dụng">
+        <button class="app-tab is-active" id="simulation-tab" type="button" role="tab" aria-selected="true" aria-controls="simulation-panel" data-tab="simulation">Mô phỏng</button>
+        <button class="app-tab" id="history-tab" type="button" role="tab" aria-selected="false" aria-controls="history-panel" data-tab="history">Tra lịch sử</button>
+      </div>
+
+      <section class="tab-panel" id="simulation-panel" role="tabpanel" aria-labelledby="simulation-tab">
+        <div class="workspace-grid">
+          <aside class="control-panel" aria-label="Thiết lập mô phỏng">
+            <div class="panel-heading">
+              <p class="eyebrow">01 · MÔ PHỎNG</p>
+              <h1>Tìm một bộ 6 số</h1>
+              <p class="muted">Sinh từng bộ 6 số thực tế cho đến khi khớp bộ số mục tiêu đã khóa.</p>
+            </div>
+
+            <div class="field-group">
+              <span class="field-label">Nguồn bộ số mục tiêu</span>
+              <div class="segmented-control" role="group" aria-label="Nguồn bộ số mục tiêu">
+                <button type="button" class="segment is-active" data-sim-source="custom">Tự chọn</button>
+                <button type="button" class="segment" data-sim-source="history">Theo lịch sử</button>
+              </div>
+            </div>
+
+            <div id="custom-source-panel">
+              <div class="field-group">
+                <div class="field-row">
+                  <span class="field-label">Chọn 2–6 số</span>
+                  <output id="simulation-selection-count" class="selection-count">0/6</output>
+                </div>
+                <div id="simulation-number-grid" class="number-grid" aria-label="Chọn số mục tiêu"></div>
+                <div class="selection-legend" aria-label="Chú giải cách chọn số">
+                  <span><i class="legend-swatch manual"></i> Tự chọn</span>
+                  <span><i class="legend-swatch random"></i> Ngẫu nhiên</span>
+                </div>
+                <p id="simulation-validation" class="validation-message" role="status"></p>
+              </div>
+              <div class="inline-controls">
+                <label class="compact-field" for="random-count">Số lượng ngẫu nhiên
+                  <select id="random-count">
+                    <option value="2">2 số</option>
+                    <option value="3" selected>3 số</option>
+                    <option value="4">4 số</option>
+                    <option value="5">5 số</option>
+                    <option value="6">6 số</option>
+                  </select>
+                </label>
+                <button id="random-pick-button" class="button button-secondary" type="button">↝ Chọn ngẫu nhiên</button>
+                <button id="clear-simulation-button" class="button button-quiet" type="button">Xóa</button>
+              </div>
+            </div>
+
+            <div id="history-source-panel" hidden>
+              <div class="field-group">
+                <label class="field-label" for="history-draw-select">Chọn kỳ quay</label>
+                <select id="history-draw-select" class="full-select"></select>
+                <p id="history-source-numbers" class="selected-draw-note"></p>
+                <p id="history-source-status" class="validation-message" role="status"></p>
+              </div>
+            </div>
+
+            <details class="advanced-settings">
+              <summary>Nâng cao <span>(tuỳ chọn)</span></summary>
+              <div class="advanced-body">
+                <label class="field-label" for="seed-input">Mã khởi tạo tái lập</label>
+                <div class="seed-row">
+                  <input id="seed-input" type="text" autocomplete="off" spellcheck="false">
+                  <button id="new-seed-button" class="button button-quiet" type="button">Mã khởi tạo mới</button>
+                </div>
+                <p class="muted small">Cùng bộ số mục tiêu, mã khởi tạo và phiên bản mô phỏng sẽ cho cùng kết quả.</p>
+              </div>
+            </details>
+
+            <div class="control-actions">
+              <button id="start-button" class="button button-primary button-large" type="button">Bắt đầu</button>
+              <button id="new-run-button" class="button button-secondary" type="button" hidden>Chạy mới</button>
+              <button id="repeat-run-button" class="button button-secondary" type="button" hidden>Lặp lại cùng mã khởi tạo</button>
+            </div>
+            <p id="simulation-error" class="error-message" role="alert"></p>
+          </aside>
+
+          <section class="result-panel simulation-result-panel">
+            <div class="result-toolbar">
+              <span class="eyebrow">BỘ SỐ MỤC TIÊU ĐÃ KHÓA</span>
+              <button id="presentation-button" class="button button-quiet" type="button">▣ Trình chiếu</button>
+            </div>
+            <div id="simulation-target" class="chip-row large-chips" aria-label="Bộ số mục tiêu"></div>
+
+            <div class="hero-counter">
+              <div id="attempt-count" class="hero-number">0</div>
+              <div class="hero-label" id="attempt-label">lượt đã thử</div>
+              <div id="simulation-status" class="status-pill status-ready" role="status"><span class="status-dot"></span><span>Sẵn sàng</span></div>
+            </div>
+
+            <div class="result-divider"></div>
+            <div class="result-heading-row">
+              <div>
+                <p class="eyebrow">BỘ 6 SỐ TÌM ĐƯỢC</p>
+                <p id="matched-combination-note" class="muted">Chưa có bộ số khớp.</p>
+              </div>
+              <div id="matched-combination" class="chip-row result-chips" aria-label="Bộ số được sinh"></div>
+            </div>
+
+            <div class="stat-grid">
+              <article class="stat-card">
+                <span>Xác suất mỗi lượt</span>
+                <strong id="simulation-probability">—</strong>
+              </article>
+              <article class="stat-card">
+                <span>Chờ trung bình</span>
+                <strong id="simulation-mean">—</strong>
+              </article>
+            </div>
+            <div class="cost-grid">
+              <article class="stat-card">
+                <span>Bộ số trong một lượt</span>
+                <strong id="simulation-covered-sets">—</strong>
+              </article>
+              <article class="stat-card">
+                <span>Phí mỗi lượt</span>
+                <strong id="simulation-cost-per-attempt">—</strong>
+              </article>
+              <article class="stat-card">
+                <span>Tổng phí tạm tính</span>
+                <strong id="simulation-total-cost">—</strong>
+              </article>
+            </div>
+            <p id="simulation-theory-note" class="info-note">Trung bình không phải mốc đảm bảo trúng.</p>
+
+            <div class="result-footer">
+              <div class="inline-controls">
+                <button id="pause-button" class="button button-primary" type="button" hidden>Tạm dừng</button>
+                <button id="resume-button" class="button button-primary" type="button" hidden>Tiếp tục</button>
+                <button id="stop-button" class="button button-secondary" type="button" hidden>Kết thúc</button>
+                <button id="copy-result-button" class="button button-secondary" type="button" hidden>Sao chép kết quả</button>
+                <button id="download-result-button" class="button button-secondary" type="button" hidden>Tải tệp kết quả</button>
+              </div>
+              <span id="active-time" class="muted small">Thời gian hoạt động: 0,0 giây</span>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="history-panel" role="tabpanel" aria-labelledby="history-tab" hidden>
+        <div class="workspace-grid history-workspace">
+          <aside class="control-panel" aria-label="Thiết lập tra lịch sử">
+            <div class="panel-heading">
+              <p class="eyebrow">02 · TRA LỊCH SỬ</p>
+              <h1>Phân tích các kỳ quay</h1>
+              <p class="muted">Chọn số và xem chúng xuất hiện thế nào trong dữ liệu Mega 6/45 tại máy.</p>
+            </div>
+
+            <div class="field-group">
+              <span class="field-label">Phân tích bộ số</span>
+              <p id="history-mode-description" class="muted small">Chọn từ 1 đến 6 số; kỳ quay cần chứa đủ số đã chọn. Với 6 số, đây là so khớp giải độc đắc không xét thứ tự.</p>
+            </div>
+
+            <div class="field-group">
+              <div class="field-row">
+                <span class="field-label">Chọn 1–6 số</span>
+                <output id="history-selection-count" class="selection-count">0</output>
+              </div>
+              <div id="history-number-grid" class="number-grid" aria-label="Chọn số phân tích"></div>
+              <p id="history-validation" class="validation-message" role="status"></p>
+            </div>
+
+            <div class="date-grid">
+              <label class="compact-field" for="history-from">Từ ngày
+                <input id="history-from" type="date">
+              </label>
+              <label class="compact-field" for="history-to">Đến ngày
+                <input id="history-to" type="date">
+              </label>
+            </div>
+            <p id="history-range-count" class="range-count">Số kỳ trong khoảng ngày: —</p>
+            <button id="analyze-history-button" class="button button-primary button-large" type="button">⌕ Phân tích</button>
+            <p id="history-analysis-error" class="error-message" role="alert"></p>
+          </aside>
+
+          <section class="result-panel history-result-panel">
+            <div class="result-toolbar">
+              <div>
+                <span class="eyebrow">KẾT QUẢ TRA CỨU</span>
+                <p id="history-data-summary" class="muted small">Đang tải dữ liệu lịch sử…</p>
+              </div>
+              <span id="history-coverage-status" class="coverage-badge">Mức độ bao phủ dữ liệu: chưa xác định</span>
+            </div>
+            <div class="history-hero">
+              <div id="history-match-count" class="hero-number">—</div>
+              <div id="history-match-label" class="hero-label">kỳ khớp trong khoảng đã chọn</div>
+            </div>
+            <div class="stat-grid">
+              <article class="stat-card">
+                <span>Tần suất lịch sử</span>
+                <strong id="history-frequency">—</strong>
+              </article>
+              <article class="stat-card">
+                <span>Xác suất lý thuyết</span>
+                <strong id="history-probability">—</strong>
+              </article>
+            </div>
+            <p id="history-result-note" class="info-note">Tần suất quá khứ không dự đoán kỳ tiếp theo.</p>
+
+            <div class="table-heading">
+              <div>
+                <h2>Các kỳ khớp</h2>
+                <p id="history-actual-range" class="muted small">Chưa chạy phân tích.</p>
+              </div>
+            </div>
+            <div id="history-empty-state" class="empty-state">Chọn số và nhấn “Phân tích”.</div>
+            <div id="history-table-wrap" class="table-wrap" hidden>
+              <table>
+                <thead>
+                  <tr><th>Ngày</th><th>Kỳ quay</th><th>Kết quả</th></tr>
+                </thead>
+                <tbody id="history-matches-body"></tbody>
+              </table>
+              <button id="history-show-more" class="button button-secondary show-more-button" type="button" hidden>Xem thêm</button>
+            </div>
+
+            <details class="analysis-details">
+              <summary>Phân bố trùng số & khoảng chờ</summary>
+              <div id="history-details-content" class="details-content">
+                <p class="muted">Chưa có kết quả phân tích.</p>
+              </div>
+            </details>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
