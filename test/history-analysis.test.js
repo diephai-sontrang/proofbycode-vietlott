@@ -6,7 +6,10 @@ import {
   HistoricalDataValidationError,
   normalizeMega645Data,
 } from '../src/history-data.js';
-import { analyzeHistory } from '../src/history-analysis.js';
+import {
+  analyzeHistory,
+  filterDrawsByNumberRange,
+} from '../src/history-analysis.js';
 
 const COMBINATION_COUNT = 8_145_060;
 
@@ -89,6 +92,34 @@ test('jackpot-coverage uses selected-set membership without enumerating combinat
   assert.deepEqual(result.matchedDraws.map((draw) => draw.drawId), ['00001', '00005', '00006']);
   assert.equal(result.theoreticalProbability.exact.numerator, 28);
   assert.equal(result.theoreticalProbability.exact.denominator, COMBINATION_COUNT);
+});
+
+test('filters draws whose six numbers all fit an inclusive numeric range', () => {
+  const result = filterDrawsByNumberRange(FIXTURE_DATA, { from: 2, to: 8 });
+
+  assert.equal(result.totalDrawsAnalyzed, 6);
+  assert.equal(result.matchedDrawCount, 1);
+  assert.deepEqual(result.matchedDraws, [{
+    drawId: '00005',
+    drawDate: '2020-03-08',
+    winningNumbers: [3, 4, 5, 6, 7, 8],
+    position: 5,
+  }]);
+});
+
+test('validates numeric filter range bounds', () => {
+  assert.throws(
+    () => filterDrawsByNumberRange(FIXTURE_DATA, { from: 0, to: 8 }),
+    /bounds.*\[1, 45\]/,
+  );
+  assert.throws(
+    () => filterDrawsByNumberRange(FIXTURE_DATA, { from: 8, to: 46 }),
+    /bounds.*\[1, 45\]/,
+  );
+  assert.throws(
+    () => filterDrawsByNumberRange(FIXTURE_DATA, { from: 9, to: 8 }),
+    /on or before/,
+  );
 });
 
 test('inclusive date filtering and leap-day calendar gaps are correct', () => {

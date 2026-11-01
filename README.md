@@ -54,6 +54,8 @@ node scripts/analyze-history.js --mode jackpot-coverage --numbers 1,2,3,4,5,6,7,
 
 The result reports inclusive date filtering, actual analyzed coverage, match rate, an intersection histogram from 0 through 6, matched draws and waiting gaps. Draw transitions and calendar days are separate counters. Leading/trailing spans are observation-window boundaries, not completed waiting times.
 
+For a numeric-range query independent of the analysis modes, the core also exports `filterDrawsByNumberRange(normalizedData, { from, to })`. It returns `matchedDrawCount` and the matching draws where all six numbers are within the inclusive `[from, to]` range; bounds must be integers from 1 through 45.
+
 Theoretical probability is reported separately from historical frequency. For `M = C(45, 6) = 8,145,060`, `contains-selected` uses `C(45-k, 6-k) / M`; `jackpot-coverage` uses `C(k, 6) / M`. The theoretical mean `1 / p` is not a guaranteed threshold and does not predict the future. Choosing numbers after inspecting history introduces selection bias and is not evidence of predictive advantage.
 
 ## Engine API

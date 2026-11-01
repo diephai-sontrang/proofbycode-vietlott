@@ -83,6 +83,29 @@ function validateNormalizedData(normalizedData) {
   }
 }
 
+function validateNumberRange(range) {
+  if (range === null || typeof range !== 'object' || Array.isArray(range)) {
+    throw new TypeError('number range must be an object with from and to');
+  }
+
+  const { from, to } = range;
+  if (
+    !Number.isSafeInteger(from)
+      || !Number.isSafeInteger(to)
+      || from < 1
+      || from > MAX_NUMBER
+      || to < 1
+      || to > MAX_NUMBER
+  ) {
+    throw new RangeError('number range bounds must be integers in [1, 45]');
+  }
+  if (from > to) {
+    throw new RangeError('number range from must be on or before to');
+  }
+
+  return { from, to };
+}
+
 function copyCoverage(coverage) {
   if (coverage === null || typeof coverage !== 'object') {
     return null;
@@ -183,6 +206,33 @@ function buildGapReport(draws, matchedDraws) {
       observationWindowBoundary: 'end',
     },
     noMatchWindow: null,
+  };
+}
+
+/**
+ * Return historical draws whose complete six-number result is within [from, to].
+ * The range is numeric and inclusive; it is independent of the date range used
+ * by analyzeHistory().
+ */
+export function filterDrawsByNumberRange(normalizedData, range) {
+  validateNormalizedData(normalizedData);
+  const { from, to } = validateNumberRange(range);
+  const matchedDraws = normalizedData.draws
+    .map((draw, index) => ({ draw, position: index + 1 }))
+    .filter(({ draw }) => draw.numbers.every((number) => number >= from && number <= to))
+    .map(({ draw, position }) => ({
+      drawId: draw.drawId,
+      drawDate: draw.drawDate,
+      winningNumbers: [...draw.numbers],
+      position,
+    }));
+
+  return {
+    from,
+    to,
+    totalDrawsAnalyzed: normalizedData.draws.length,
+    matchedDrawCount: matchedDraws.length,
+    matchedDraws,
   };
 }
 
