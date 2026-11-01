@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "simulate": "node scripts/simulate.js"
+    "simulate": "node scripts/simulate.js",
+    "analyze-history": "node scripts/analyze-history.js"
   },
   "engines": {
     "node": ">=18"

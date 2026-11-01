@@ -25,6 +25,37 @@ node scripts/simulate.js \
 
 Use `node scripts/simulate.js --help` for the full option list. The CLI prints the configuration, throttled progress, winner events, elapsed time, throughput and a final summary. It stops when `stopAfterWinners` is reached or after 10 seconds, whichever comes first. `Ctrl+C` prints the current snapshot as interrupted rather than completed. The core API still requires `maxPlayers`; the CLI supplies an internal safe ceiling because its practical limit is the 10-second timeout.
 
+## Historical fixed-number analysis
+
+The historical analysis uses the local `data/mega-6-45.json` file. Its current envelope is:
+
+```json
+{
+  "source": "...",
+  "retrievedAt": "YYYY-MM-DD",
+  "draws": [{ "id": "00001", "date": "YYYY-MM-DD", "result": [1, 2, 3, 4, 5, 6] }]
+}
+```
+
+The adapter normalizes this to `drawId`, `drawDate` and sorted `numbers`. It validates date-only values without timezone conversion, six distinct numbers in `[1, 45]`, duplicate IDs, conflicting records and numeric-ID chronology. Invalid data fails the analysis; records are not silently discarded. The current file's ID range is internally contiguous, but external full-history completeness remains reported as `unknown`.
+
+Two explicit modes are available:
+
+- `contains-selected`: select 1–6 numbers; a draw matches when it contains all selected numbers. Selecting six numbers is an exact Jackpot comparison, but fewer than six numbers must not be described as a Jackpot win.
+- `jackpot-coverage`: select 6–45 numbers and mathematically assume every `C(selectedCount, 6)` combination from that set is purchased. A draw matches when all six winning numbers belong to the selected set. This is a coverage model, not a claim that every selected-set size is an official retail bet product.
+
+Examples:
+
+```text
+node scripts/analyze-history.js --mode contains-selected --numbers 3,12,27
+node scripts/analyze-history.js --mode jackpot-coverage --numbers 1,5,9,14,22,30,37,45 --from 2020-01-01 --to 2026-10-31
+node scripts/analyze-history.js --mode jackpot-coverage --numbers 1,2,3,4,5,6,7,8 --json
+```
+
+The result reports inclusive date filtering, actual analyzed coverage, match rate, an intersection histogram from 0 through 6, matched draws and waiting gaps. Draw transitions and calendar days are separate counters. Leading/trailing spans are observation-window boundaries, not completed waiting times.
+
+Theoretical probability is reported separately from historical frequency. For `M = C(45, 6) = 8,145,060`, `contains-selected` uses `C(45-k, 6-k) / M`; `jackpot-coverage` uses `C(k, 6) / M`. The theoretical mean `1 / p` is not a guaranteed threshold and does not predict the future. Choosing numbers after inspecting history introduces selection bias and is not evidence of predictive advantage.
+
 ## Engine API
 
 ```js
